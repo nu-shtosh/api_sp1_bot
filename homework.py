@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
     if homework_name is None:
-        return 'Домашняя работа осутсвует'
+        return 'Домашняя работа не найдена'
     homework_statuses = homework.get('status')
     if homework_statuses is None:
         return f'Работу {homework_name} еще не проверили'

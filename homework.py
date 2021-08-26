@@ -58,7 +58,7 @@ def main():
             send_message(parse_homework_status(
                 get_homeworks(current_timestamp)))
             logger.info('Бот отправил сообщение')
-            time.sleep(5 * 60)
+            time.sleep(30 * 60)
 
         except Exception as e:
             error_message = f'Бот упал с ошибкой: {e}'

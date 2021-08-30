@@ -24,7 +24,7 @@ logging.basicConfig(
     filename='main.log', filemode='w',
     format='%(asctime)s, %(levelname)s, %(name)s, %(message)s'
 )
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_homework_status(homework):
@@ -32,27 +32,27 @@ def parse_homework_status(homework):
     HW_STATUS = homework.get('status')
     GOOD_VERDICT = 'Ревьюеру всё понравилось, работа зачтена!'
     BAD_VERDICT = 'К сожалению, в работе нашлись ошибки.'
-    REWIEW_VERDICT = 'Вашу работу проверили.'
+    REVIEW_VERDICT = 'Вашу работу проверили.'
     STATUS_ERROR = 'Ошибка статуса!'
     STATUSES = {
         'rejected': BAD_VERDICT,
         'approved': GOOD_VERDICT,
-        'reviewing': REWIEW_VERDICT,
+        'reviewing': REVIEW_VERDICT,
     }
-    REWIEWING = f'У вас проверили работу "{HW_NAME}"!\n\n{STATUSES[HW_STATUS]}'
+    print(homework)
+    REVIEWING = f'У вас проверили работу "{HW_NAME}"!\n\n{STATUSES[HW_STATUS]}'
     if HW_STATUS in STATUSES.keys():
-        return REWIEWING.format(HW_NAME, STATUSES[HW_STATUS])
+        return REVIEWING.format(HW_NAME, STATUSES[HW_STATUS])
     else:
-        return logging.error(STATUS_ERROR)
-        return STATUS_ERROR
+        raise ValueError(STATUS_ERROR)
 
 
 def get_homeworks(current_timestamp):
-    headers = {'Authorization': AUTH_YAP_TOKEN}
-    payload = {'from_date': current_timestamp}
-    UrlHeadersParams = dict(url=YAP_URL, headers=headers, params=payload)
-    response = requests.get(**UrlHeadersParams)
-    HW_STATUS = response.json()
+    HEADERS = {'Authorization': AUTH_YAP_TOKEN}
+    PAYLOAD = {'from_date': current_timestamp}
+    URLHEADPAYLOAD = dict(url=YAP_URL, headers=HEADERS, params=PAYLOAD)
+    RESPONSE = requests.get(**URLHEADPAYLOAD)
+    HW_STATUS = RESPONSE.json()
     if HW_STATUS.get('error') or HW_STATUS.get('code'):
         error = HW_STATUS.get('error')
         code = HW_STATUS.get('code')
@@ -63,30 +63,31 @@ def get_homeworks(current_timestamp):
 def send_message(message):
     try:
         TG_BOT.send_message(chat_id=CHAT_ID, text=message)
-        logging.info('Отправлено сообщение в чат!')
+        LOGGER.info('Отправлено сообщение в чат!')
     except Exception as SEND_ERROR:
         SEND_ERROR = 'Во время отправки возникла ошибка!'
-        logger.error(SEND_ERROR)
+        LOGGER.error(SEND_ERROR)
         TG_BOT.send_message(chat_id=CHAT_ID, text=SEND_ERROR)
 
 
 def main():
     current_timestamp = int(time.time())
-
+    INTERVAL = time.sleep(5 * 60)
+    SLEEP = time.sleep(5)
     while True:
         try:
-            logger.debug('Бот был запущен!')
+            LOGGER.debug('Бот был запущен!')
             response = get_homeworks(current_timestamp)
             homeworks = response['homeworks']
-            logger.info('Бот отправил сообщение!')
+            LOGGER.info('Бот отправил сообщение!')
             for homework in homeworks:
                 send_message(parse_homework_status(homework))
-            time.sleep(5 * 60)
+            INTERVAL
         except Exception as e:
             error_message = f'Бот упал с ошибкой: {e}!'
-            logger.error(error_message)
+            LOGGER.error(error_message)
             TG_BOT.send_message(chat_id=CHAT_ID, text=error_message)
-            time.sleep(5)
+            SLEEP
 
 
 if __name__ == '__main__':

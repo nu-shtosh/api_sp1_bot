@@ -151,4 +151,4 @@ posts/static/
 media/
 
 #moi ignor
-kluch.env
+.env

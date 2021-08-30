@@ -12,7 +12,7 @@ os.path.expanduser('~')
 
 PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-CHAT_ID = os.environ['CHAT_ID']
+CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
 
 TG_BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 
@@ -54,9 +54,9 @@ def get_homeworks(current_timestamp):
     response = requests.get(**UrlHeadersParams)
     HW_STATUS = response.json()
     if HW_STATUS.get('error') or HW_STATUS.get('code'):
-        ERROR = HW_STATUS.get('error')
-        CODE = HW_STATUS.get('code')
-        raise RequestException(f'{ERROR}.код {CODE}')
+        error = HW_STATUS.get('error')
+        code = HW_STATUS.get('code')
+        raise RequestException(f'{error}.код {code}')
     return HW_STATUS
 
 
@@ -72,8 +72,7 @@ def send_message(message):
 
 def main():
     current_timestamp = int(time.time())
-    interval = time.sleep(5 * 60)
-    sleep = time.sleep(5)
+
     while True:
         try:
             logger.debug('Бот был запущен!')
@@ -82,12 +81,12 @@ def main():
             logger.info('Бот отправил сообщение!')
             for homework in homeworks:
                 send_message(parse_homework_status(homework))
-            interval
+            time.sleep(5 * 60)
         except Exception as e:
             error_message = f'Бот упал с ошибкой: {e}!'
             logger.error(error_message)
             TG_BOT.send_message(chat_id=CHAT_ID, text=error_message)
-            sleep
+            time.sleep(5)
 
 
 if __name__ == '__main__':

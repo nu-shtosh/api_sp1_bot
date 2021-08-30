@@ -48,6 +48,8 @@ def parse_homework_status(homework):
 
 
 def get_homeworks(current_timestamp):
+    if current_timestamp is None:
+        current_timestamp = int(time.time())
     HEADERS = {'Authorization': AUTH_YAP_TOKEN}
     PAYLOAD = {'from_date': current_timestamp}
     URLHEADPAYLOAD = dict(url=YAP_URL, headers=HEADERS, params=PAYLOAD)

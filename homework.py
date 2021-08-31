@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 
 PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
 if PRAKTIKUM_TOKEN is None:
-    LOGGER.debug('Токен отсутсвует!')
+    LOGGER.error('Токен отсутсвует!')
     raise ValueError('Токен отсутсвует!')
 
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
@@ -44,12 +44,14 @@ def parse_homework_status(homework):
     HW_STATUS = homework.get('status')
 
     if HW_NAME is None or HW_STATUS is None:
+        LOGGER.error(NONE_ERROR)
         raise ValueError(NONE_ERROR)
 
     REVIEWING = f'У вас проверили работу "{HW_NAME}"!\n\n{STATUSES[HW_STATUS]}'
     if HW_STATUS in STATUSES.keys():
         return REVIEWING.format(HW_NAME, STATUSES[HW_STATUS])
     else:
+        LOGGER.error(STATUS_ERROR)
         raise ValueError(STATUS_ERROR)
 
 
@@ -71,7 +73,6 @@ def send_message(message):
     try:
         TG_BOT.send_message(chat_id=CHAT_ID, text=message)
         LOGGER.info('Отправлено сообщение в чат!')
-
     except Exception as SEND_ERROR:
         SEND_ERROR = 'Во время отправки возникла ошибка!'
         LOGGER.error(SEND_ERROR)

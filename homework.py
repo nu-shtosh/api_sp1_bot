@@ -19,11 +19,18 @@ logger = logging.getLogger(__name__)
 
 PRAKTIKUM_TOKEN = os.environ.get('PRAKTIKUM_TOKEN')
 if PRAKTIKUM_TOKEN is None:
-    logger.error('Токен отсутсвует!')
-    raise ValueError('Токен отсутсвует!')
+    logger.error('Токен YAP отсутсвует!')
+    raise ValueError('Токен YAP отсутсвует!')
 
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+if TELEGRAM_TOKEN is None:
+    logger.error('Токен TG отсутсвует!')
+    raise ValueError('Токен TG отсутсвует!')
+
 CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+if CHAT_ID is None:
+    logger.error('Токен CHAT отсутсвует!')
+    raise ValueError('Токен CHAT отсутсвует!')
 
 TG_BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 YAP_URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'

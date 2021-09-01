@@ -15,24 +15,25 @@ logging.basicConfig(
     filename='main.log', filemode='w',
     format='%(asctime)s, %(levelname)s, %(name)s, %(message)s'
 )
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
+PRAKTIKUM_TOKEN = os.environ.get('PRAKTIKUM_TOKEN')
 if PRAKTIKUM_TOKEN is None:
-    LOGGER.error('Токен отсутсвует!')
+    logger.error('Токен отсутсвует!')
     raise ValueError('Токен отсутсвует!')
 
-TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
 TG_BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 YAP_URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 AUTH_YAP_TOKEN = f'OAuth {PRAKTIKUM_TOKEN}'
-HEADERS = {'Authorization': AUTH_YAP_TOKEN}
+
 
 STATUS_ERROR = 'Ошибка статуса!'
 NONE_ERROR = 'STATUS OR HOMEWORK IS NONE'
-STATUSES = {
+
+stauses = {
     'rejected': 'К сожалению, в работе нашлись ошибки.',
     'approved': 'Ревьюеру всё понравилось, работа зачтена!',
     'reviewing': 'Вашу работу проверяют.',
@@ -40,42 +41,49 @@ STATUSES = {
 
 
 def parse_homework_status(homework):
-    HW_NAME = homework.get('homework_name')
-    HW_STATUS = homework.get('status')
+    hw_name = homework.get('homework_name')
+    hw_status = homework.get('status')
 
-    if HW_NAME is None or HW_STATUS is None:
-        LOGGER.error(NONE_ERROR)
+    if hw_name is None or hw_status is None:
+        logger.error(NONE_ERROR)
         raise ValueError(NONE_ERROR)
 
-    REVIEWING = f'У вас проверили работу "{HW_NAME}"!\n\n{STATUSES[HW_STATUS]}'
-    if HW_STATUS in STATUSES.keys():
-        return REVIEWING.format(HW_NAME, STATUSES[HW_STATUS])
+    reviewing = f'У вас проверили работу "{hw_name}"!\n\n{stauses[hw_status]}'
+    if hw_status in stauses.keys():
+        return reviewing.format(hw_name, stauses[hw_status])
     else:
-        LOGGER.error(STATUS_ERROR)
+        logger.error(STATUS_ERROR)
         raise ValueError(STATUS_ERROR)
 
 
 def get_homeworks(current_timestamp):
     if current_timestamp is None:
         current_timestamp = int(time.time())
-    PAYLOAD = {'from_date': current_timestamp}
-    UrlHeadPayload = dict(url=YAP_URL, headers=HEADERS, params=PAYLOAD)
-    response = requests.get(**UrlHeadPayload)
-    HW_STATUS = response.json()
-    if HW_STATUS.get('error') or HW_STATUS.get('code'):
-        error = HW_STATUS.get('error')
-        code = HW_STATUS.get('code')
+
+    headers = {'Authorization': AUTH_YAP_TOKEN}
+    payload = {'from_date': current_timestamp}
+    UrlHeadPayload = dict(url=YAP_URL, headers=headers, params=payload)
+    try:
+        response = requests.get(**UrlHeadPayload)
+    except RequestException as error_requests:
+        URL_ERROR = (f'Во время запроса {YAP_URL}'
+                     f'произошла ошибка {error_requests}!')
+        logger.error(URL_ERROR)
+    hw_status = response.json()
+    if hw_status.get('error') or hw_status.get('code'):
+        error = hw_status.get('error')
+        code = hw_status.get('code')
         raise RequestException(f'{error}.код {code}')
-    return HW_STATUS
+    return hw_status
 
 
 def send_message(message):
     try:
         TG_BOT.send_message(chat_id=CHAT_ID, text=message)
-        LOGGER.info('Отправлено сообщение в чат!')
+        logger.info('Отправлено сообщение в чат!')
     except Exception as SEND_ERROR:
         SEND_ERROR = 'Во время отправки возникла ошибка!'
-        LOGGER.error(SEND_ERROR)
+        logger.error(SEND_ERROR)
         TG_BOT.send_message(chat_id=CHAT_ID, text=SEND_ERROR)
 
 
@@ -84,16 +92,16 @@ def main():
     INTERVAL = 5 * 60
     while True:
         try:
-            LOGGER.debug('Бот был запущен!')
+            logger.debug('Бот был запущен!')
             response = get_homeworks(current_timestamp)
             homeworks = response['homeworks']
-            LOGGER.info('Бот отправил сообщение!')
+            logger.info('Бот отправил сообщение!')
             for homework in homeworks:
                 send_message(parse_homework_status(homework))
             time.sleep(INTERVAL)
         except Exception as e:
             ERROR_MESSAGE = f'Бот упал с ошибкой: {e}!'
-            LOGGER.error(ERROR_MESSAGE)
+            logger.error(ERROR_MESSAGE)
             TG_BOT.send_message(chat_id=CHAT_ID, text=ERROR_MESSAGE)
             time.sleep(5)
 

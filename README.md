@@ -2,6 +2,7 @@
 ```sh
 git clone https://github.com/nu-shtosh/api_sp1_bot.git
 ```
+не забудьте создать файл .env c PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 ### У API Практикум.Домашка есть лишь один эндпоинт:
 https://practicum.yandex.ru/api/user_api/homework_statuses/
 и доступ к нему возможен только по токену.
